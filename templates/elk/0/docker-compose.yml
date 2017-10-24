@@ -33,17 +33,6 @@ services:
       io.rancher.container.start_once: 'true'
       io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
       io.rancher.container.pull_image: always
-  geoip:
-    image: docker.tlprt.cloud/teleport.media/geoip:master
-    stdin_open: true
-    tty: true
-    links:
-    - redis:redis
-    - es:es
-    labels:
-      io.rancher.container.start_once: 'true'
-      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
-      io.rancher.container.pull_image: always
   metricbeat-other-conf:
     image: alpine:latest
     environment:
@@ -142,7 +131,7 @@ services:
     mem_limit: 1073741824
     cap_add:
     - IPC_LOCK
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
     environment:
       ES_JAVA_OPTS: -Xms512m -Xmx512m
       node.name: $${HOSTNAME}
@@ -247,7 +236,7 @@ services:
     mem_limit: $mem_limit
     cap_add:
     - IPC_LOCK
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
     environment:
       ES_JAVA_OPTS: $ES_JAVA_OPTS
       discovery.zen.minimum_master_nodes: '2'
@@ -332,7 +321,7 @@ services:
     mem_limit: 1073741824
     cap_add:
     - IPC_LOCK
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.6.3
     environment:
       ES_JAVA_OPTS: -Xms512m -Xmx512m
       discovery.zen.minimum_master_nodes: '2'
@@ -355,7 +344,7 @@ services:
       io.rancher.container.hostname_override: container_name
       io.rancher.container.pull_image: always
   metricbeat-other:
-    image: docker.elastic.co/beats/metricbeat:5.5.0
+    image: docker.elastic.co/beats/metricbeat:5.6.3
     network_mode: host
     stdin_open: true
     entrypoint:
@@ -403,11 +392,10 @@ services:
     - redis:redis
     - es:es
     volumes_from:
-    - geoip
     - logstash-indexer-conf
     command:
     - -f
     - /config/logstash.conf
     labels:
       io.rancher.container.pull_image: always
-      io.rancher.sidekicks: geoip,logstash-indexer-conf
+      io.rancher.sidekicks: logstash-indexer-conf

@@ -40,11 +40,6 @@ catalog:
             port => 5000
             codec => "json"
           }
-          udp {
-            port => 5514
-            codec => "json"
-            type => "haproxy-rsyslog"
-          }
           http {
             port => 8000
             type => "elb-healthcheck"
@@ -82,63 +77,6 @@ catalog:
             data_type => "list"
             codec => json
             batch_count => 10000
-          }
-        }
-        filter {
-          if [docker][image] == "docker.tlprt.cloud/teleport.media/client:develop" {
-            grok {
-              match => [ "message" , "%{COMBINEDAPACHELOG}+%{GREEDYDATA:remote_ip}"]
-              overwrite => [ "message" ]
-            }
-            mutate {
-              gsub => [ "remote_ip", "\"", "" ]
-              strip => ["remote_ip"]
-            }
-            geoip {
-              source => "remote_ip"
-              target => "geoip"
-              database => "/geoip/GeoLite2-City.mmdb"
-              add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
-              add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}" ]
-            }
-            date {
-              match => [ "timestamp" , "dd/MMM/YYYY:HH:mm:ss Z" ]
-              remove_field => [ "timestamp" ]
-            }
-            useragent {
-              source => "agent"
-            }
-            mutate {
-              convert => ["response", "integer"]
-              convert => ["bytes", "integer"]
-              convert => ["responsetime", "float"]
-              convert => [ "[geoip][coordinates]", "float"]
-              remove_field => [ "message" ]
-            }
-          }
-          if [type] == "haproxy-rsyslog" {
-            json{
-              source => "message"
-            }
-            grok {
-              match => [ "front_addr", "%{IP:front_ip}:%{NUMBER:front_port:int}" ]
-            }
-            grok {
-              match => [ "client_addr", "%{IP:client_ip}:%{NUMBER:client_port:int}" ]
-            }
-            grok {
-              match => [ "http_req", "%{WORD:http_verb} %{URIPATHPARAM:http_request}?( HTTP/%{NUMBER:http_version})" ]
-            }
-            geoip {
-              source => "client_ip"
-              target => "geoip"
-              database => "/geoip/GeoLite2-City.mmdb"
-              add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
-              add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}" ]
-            }
-            mutate {
-              remove_field => [ "message", "front_addr", "client_addr", "http_req" ]
-            }
           }
         }
         output {
@@ -1204,7 +1142,7 @@ catalog:
         src = "other.yml.tmpl"
         dest = "/config/conf.d/other.yml"
         keys = [
-          "/stacks/lb/services/https/containers"
+          "/stacks/lb/services/web/containers"
         ]
     - variable: mo_confd_tmpl
       description: |
@@ -1217,7 +1155,7 @@ catalog:
           metricsets: ["info", "stat"]
           enabled: true
           period: 10s
-          hosts: [{{$services := ls "/stacks/lb/services/https/containers"}}"tcp://{{join $services ".rancher.internal:14567\", \"tcp://"}}.rancher.internal:14567"]
+          hosts: [{{$services := ls "/stacks/lb/services/web/containers"}}"tcp://{{join $services ".rancher.internal:14567\", \"tcp://"}}.rancher.internal:14567"]
 
 
 services:
