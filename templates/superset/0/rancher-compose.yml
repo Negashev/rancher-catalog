@@ -1,0 +1,58 @@
+version: '2'
+catalog:
+  name: "Superset"
+  version: "0.18.2"
+  description: "Superset is a data exploration platform designed to be visual, intuitive and interactive."
+  uuid: superset-0
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: superset_config
+      description: |
+        generate superset_config.py
+      label: superset_config.py
+      type: multiline
+      required: true
+      default: |
+        import os
+        CACHE_CONFIG = {
+            'CACHE_TYPE': 'redis',
+            'CACHE_DEFAULT_TIMEOUT': 300,
+            'CACHE_KEY_PREFIX': 'superset_',
+            'CACHE_REDIS_HOST': 'redis',
+            'CACHE_REDIS_PORT': 6379,
+            'CACHE_REDIS_DB': 1,
+            'CACHE_REDIS_URL': 'redis://redis:6379/1'
+        }
+        SQLALCHEMY_DATABASE_URI = 'mysql://root:passw0rd@pxc.pxc.rancher.internal:3306/superset'
+        SECRET_KEY = 'thisISaSECRET_1234'
+
+services:
+  superset:
+    scale: 1
+    metadata:
+      superset: |
+        ${superset_config}
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      recreate_on_quorum_strategy_config:
+        quorum: 1
+      port: 8088
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreateOnQuorum
+      reinitializing_timeout: 60000
+  redis:
+    scale: 1
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      recreate_on_quorum_strategy_config:
+        quorum: 1
+      port: 6379
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreateOnQuorum
+      reinitializing_timeout: 60000

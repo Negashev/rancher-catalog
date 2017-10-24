@@ -1,0 +1,42 @@
+version: '2'
+services:
+  redis:
+    image: redis:alpine
+    logging:
+      driver: json-file
+      options:
+        max-file: '2'
+        max-size: 1mb
+  superset:
+    image: amancevice/superset
+    logging:
+      driver: json-file
+      options:
+        max-file: '2'
+        max-size: 1mb
+    depends_on:
+      - redis
+    volumes_from:
+      - conf
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: conf
+  conf:
+    image: alpine:latest
+    logging:
+      driver: json-file
+      options:
+        max-file: '2'
+        max-size: 1mb
+    working_dir: /home/superset/.superset
+    volumes:
+      - /home/superset/.superset
+    command:
+      - wget
+      - http://rancher-metadata.rancher.internal/latest/self/service/metadata/superset
+      - -O
+      - superset_config.py
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      io.rancher.container.pull_image: always

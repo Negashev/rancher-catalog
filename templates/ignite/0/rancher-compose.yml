@@ -1,0 +1,144 @@
+version: '2'
+catalog:
+  name: "ignite"
+  version: "2.0.0"
+  description: "Apache Ignite In-Memory Data Fabric is a high-performance"
+  uuid: db-1
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: IGNITE_VERSION
+      description: |
+          Ignite version
+      label: Ignite version
+      type: string
+      default: "2.1.0"
+    - variable: OPTION_LIBS
+      description: |
+          Ignite optional libs which will be included in the class path.
+      label: OPTION_LIBS
+      type: string
+      default: "ignite-zookeeper,ignite-rest-http"
+    - variable: EXTERNAL_LIBS
+      description: |
+          List of URL's to libs.
+      label: EXTERNAL_LIBS
+      type: string
+      default: "https://github.com/mybatis/ignite-cache/releases/download/mybatis-ignite-1.0.5/mybatis-ignite-1.0.5.jar"
+    - variable: JVM_OPTS
+      description: |
+          Environment variables passed to Ignite instance in your docker command.
+      label: JVM_OPTS
+      type: string
+      default: "-Xms1g -Xmx1g -server -XX:+AggressiveOpts -XX:MaxPermSize=256m"
+      required: true
+    - variable: ignite_config
+      description: |
+        generate ignite-config.xml
+      label: ignite-config.xml
+      type: multiline
+      required: true
+      default: |
+        <?xml version="1.0" encoding="UTF-8"?>
+        <beans xmlns="http://www.springframework.org/schema/beans" xmlns:cache="http://www.springframework.org/schema/cache" xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="         http://www.springframework.org/schema/beans         http://www.springframework.org/schema/beans/spring-beans.xsd         http://www.springframework.org/schema/cache         http://www.springframework.org/schema/cache/spring-cache-3.1.xsd         http://www.springframework.org/schema/context         http://www.springframework.org/schema/context/spring-context.xsd ">
+           <bean class="org.apache.ignite.configuration.IgniteConfiguration">
+              <!-- Enabling Redis. -->
+              <property name="connectorConfiguration">
+                 <bean class="org.apache.ignite.configuration.ConnectorConfiguration">
+                    <property name="port" value="6379" />
+                 </bean>
+              </property>
+
+              <property name="cacheConfiguration">
+                 <list>
+                    <!-- for Redis Partitioned cache example configuration (Atomic mode). -->
+                    <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                       <property name="name" value="default" />
+                       <property name="atomicityMode" value="ATOMIC" />
+                       <property name="backups" value="1" />
+                    </bean>
+                    <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                       <property name="name" value="PDN" />
+                       <property name="cacheMode" value="PARTITIONED" />
+                       <property name="atomicityMode" value="ATOMIC" />
+                       <property name="writeSynchronizationMode" value="PRIMARY_SYNC" />
+                       <property name="backups" value="0"/>
+                       <property name="queryEntities">
+                          <list>
+                             <bean class="org.apache.ignite.cache.QueryEntity">
+                                <property name="keyType" value="java.lang.String" />
+                                <property name="valueType" value="PDN" />
+                                <property name="fields">
+                                   <map>
+                                      <entry key="swarmId" value="java.lang.String" />
+                                      <entry key="createAt" value="java.lang.Long" />
+                                      <entry key="updateAt" value="java.lang.Long" />
+                                      <entry key="city" value="java.lang.String" />
+                                      <entry key="isp" value="java.lang.String" />
+                                      <entry key="sdkVersion" value="java.lang.String" />
+                                      <entry key="swarmSize" value="java.lang.Integer" />
+                                      <entry key="score" value="java.lang.Double" />
+                                   </map>
+                                </property>
+                                <property name="indexes">
+                                   <list>
+                                      <bean class="org.apache.ignite.cache.QueryIndex">
+                                         <constructor-arg value="swarmSize" />
+                                      </bean>
+                                      <!-- Group index. -->
+                                      <bean class="org.apache.ignite.cache.QueryIndex">
+                                         <constructor-arg>
+                                            <list>
+                                               <value>sdkVersion</value>
+                                               <value>swarmId</value>
+                                            </list>
+                                         </constructor-arg>
+                                         <constructor-arg value="SORTED" />
+                                      </bean>
+                                      <!-- Group index. -->
+                                      <bean class="org.apache.ignite.cache.QueryIndex">
+                                         <constructor-arg>
+                                            <list>
+                                               <value>city</value>
+                                               <value>isp</value>
+                                            </list>
+                                         </constructor-arg>
+                                         <constructor-arg value="SORTED" />
+                                      </bean>
+                                   </list>
+                                </property>
+                             </bean>
+                          </list>
+                       </property>
+                    </bean>
+                 </list>
+              </property>
+              <property name="discoverySpi">
+                 <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+                    <property name="ipFinder">
+                       <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.zk.TcpDiscoveryZookeeperIpFinder">
+                          <property name="allowDuplicateRegistrations" value="false" />
+                          <property name="basePath" value="/ignite" />
+                          <property name="serviceName" value="Service" />
+                          <property name="zkConnectionString" value="zk.zookeeper.rancher.internal:2181" />
+                       </bean>
+                    </property>
+                 </bean>
+              </property>
+           </bean>
+        </beans>
+services:
+  server:
+    metadata:
+      ignite: |
+        ${ignite_config}
+    retain_ip: true
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 6379
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000

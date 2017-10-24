@@ -1,0 +1,32 @@
+version: '2'
+services:
+  pdn:
+    image: apacheignite/ignite:$PDN_IGNITE_VERSION
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+    environment:
+      CONFIG_URI: http://rancher-metadata.rancher.internal/latest/self/service/metadata/ignite
+      OPTION_LIBS: $PDN_OPTION_LIBS
+      EXTERNAL_LIBS: $PDN_EXTERNAL_LIBS
+      JVM_OPTS: $PDN_JVM_OPTS
+  cache:
+    image: apacheignite/ignite:$CACHE_IGNITE_VERSION
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+    environment:
+      CONFIG_URI: http://rancher-metadata.rancher.internal/latest/self/service/metadata/ignite
+      OPTION_LIBS: $CACHE_OPTION_LIBS
+      EXTERNAL_LIBS: $CACHE_EXTERNAL_LIBS
+      JVM_OPTS: $CACHE_JVM_OPTS

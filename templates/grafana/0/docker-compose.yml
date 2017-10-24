@@ -1,0 +1,28 @@
+version: '2'
+services:
+  server:
+    image: grafana/grafana:latest
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '2'
+        max-size: 1mb
+    environment:
+      GF_INSTALL_PLUGINS: ${INSTALL_PLUGINS}
+    volumes_from:
+    - server-conf
+    labels:
+      io.rancher.sidekicks: server-conf
+  server-conf:
+    image: alpine:latest
+    working_dir: /etc/grafana
+    volumes:
+    - /etc/grafana
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/grafana
+    - -O
+    - grafana.ini
+    labels:
+      io.rancher.container.start_once: 'true'

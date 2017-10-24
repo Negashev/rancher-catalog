@@ -1,0 +1,5 @@
+name: Apache Ignite
+description: |
+  Apache Ignite In-Memory Data Fabric is a high-performance
+version: 2.1.0
+category: Database

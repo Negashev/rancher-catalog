@@ -1,0 +1,17 @@
+version: '2'
+services:
+  server:
+    image: apacheignite/ignite:$IGNITE_VERSION
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+    environment:
+      CONFIG_URI: http://rancher-metadata.rancher.internal/latest/self/service/metadata/ignite
+      OPTION_LIBS: $OPTION_LIBS
+      EXTERNAL_LIBS: $EXTERNAL_LIBS
+      JVM_OPTS: $JVM_OPTS

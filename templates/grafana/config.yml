@@ -1,0 +1,5 @@
+name: Grafana Teleport
+description: |
+  Configured Grafana
+version: 3.0.0
+category: Monitoring

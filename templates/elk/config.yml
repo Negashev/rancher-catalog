@@ -1,0 +1,5 @@
+name: ELK Teleport
+description: |
+  Elasticksearch 5 with collect log from all docker sockets
+version: 5.0.0
+category: Storage
