@@ -203,7 +203,7 @@ services:
       io.rancher.container.start_once: 'true'
       io.rancher.container.pull_image: always
       io.rancher.scheduler.global: 'true'
-      cron.schedule: 0 0 * * * *
+      cron.schedule: 0 */5 * * * *
       cron.action: start
   cerebro:
     image: yannart/cerebro
