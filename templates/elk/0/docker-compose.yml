@@ -140,6 +140,7 @@ services:
       node.master: 'true'
       node.data: 'false'
       xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
     stdin_open: true
     tty: true
     logging:
@@ -247,6 +248,7 @@ services:
       node.master: 'false'
       node.name: $${HOSTNAME}
       xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
     stdin_open: true
     tty: true
     logging:
@@ -332,6 +334,7 @@ services:
       node.master: 'false'
       node.name: $${HOSTNAME}
       xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
     stdin_open: true
     tty: true
     logging:
@@ -372,6 +375,9 @@ services:
     image: kibana
     stdin_open: true
     tty: true
+    environment:
+      xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
     logging:
       driver: json-file
       options:
