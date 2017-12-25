@@ -1,65 +1,40 @@
 version: '2'
 catalog:
   name: "ignite"
-  version: "2.1.0"
+  version: "2.3.0"
   description: "Apache Ignite In-Memory Data Fabric is a high-performance"
   uuid: db-2
   minimum_rancher_version: v1.1.99
   questions:
-    - variable: PDN_IGNITE_VERSION
+    - variable: IGNITE_VERSION
       description: |
-          PDN Ignite version
-      label: PDN Ignite version
+          Ignite version
+      label: Ignite version
       type: string
-      default: "2.1.0"
-    - variable: CACHE_IGNITE_VERSION
+      default: "2.3.0"
+    - variable: IGNITE_OPTION_LIBS
       description: |
-          Cache Ignite version
-      label: Cache Ignite version
-      type: string
-      default: "2.1.0"
-    - variable: PDN_OPTION_LIBS
-      description: |
-          PDN Ignite optional libs which will be included in the class path.
-      label: PDN OPTION_LIBS
+          Ignite optional libs which will be included in the class path.
+      label: IGNITE OPTION_LIBS
       type: string
       default: "ignite-zookeeper,ignite-rest-http"
-    - variable: CACHE_OPTION_LIBS
-      description: |
-          Cache Ignite optional libs which will be included in the class path.
-      label: Cache OPTION_LIBS
-      type: string
-      default: "ignite-zookeeper,ignite-rest-http"
-    - variable: PDN_EXTERNAL_LIBS
+    - variable: IGNITE_EXTERNAL_LIBS
       description: |
           List of URL's to libs.
-      label: PDN EXTERNAL_LIBS
+      label: IGNITE EXTERNAL_LIBS
       type: string
       default: "https://github.com/mybatis/ignite-cache/releases/download/mybatis-ignite-1.0.5/mybatis-ignite-1.0.5.jar"
-    - variable: CACHE_EXTERNAL_LIBS
-      description: |
-          List of URL's to libs.
-      label: Cache EXTERNAL_LIBS
-      type: string
-      default: "https://github.com/mybatis/ignite-cache/releases/download/mybatis-ignite-1.0.5/mybatis-ignite-1.0.5.jar"
-    - variable: PDN_JVM_OPTS
+    - variable: IGNITE_JVM_OPTS
       description: |
           Environment variables passed to Ignite instance in your docker command.
-      label: PDN JVM_OPTS
+      label: IGNITE JVM_OPTS
       type: string
       default: "-Xms1g -Xmx1g -server -XX:+AggressiveOpts -XX:MaxPermSize=256m"
       required: true
-    - variable: CAHCE_JVM_OPTS
+    - variable: ignite_config
       description: |
-          Environment variables passed to Ignite instance in your docker command.
-      label: Cache JVM_OPTS
-      type: string
-      default: "-Xms1g -Xmx1g -server -XX:+AggressiveOpts -XX:MaxPermSize=256m"
-      required: true
-    - variable: pdn_ignite_config
-      description: |
-        generate pdn-config.xml
-      label: pdn-config.xml
+        generate config.xml
+      label: config.xml
       type: multiline
       required: true
       default: |
@@ -83,61 +58,7 @@ catalog:
                     <bean class="org.apache.ignite.configuration.CacheConfiguration">
                        <property name="name" value="default" />
                        <property name="atomicityMode" value="ATOMIC" />
-                       <property name="backups" value="1" />
-                    </bean>
-                    <bean class="org.apache.ignite.configuration.CacheConfiguration">
-                       <property name="name" value="PDN" />
-                       <property name="cacheMode" value="PARTITIONED" />
-                       <property name="atomicityMode" value="ATOMIC" />
-                       <property name="writeSynchronizationMode" value="PRIMARY_SYNC" />
-                       <property name="backups" value="0"/>
-                       <property name="queryEntities">
-                          <list>
-                             <bean class="org.apache.ignite.cache.QueryEntity">
-                                <property name="keyType" value="java.lang.String" />
-                                <property name="valueType" value="PDN" />
-                                <property name="fields">
-                                   <map>
-                                      <entry key="swarmId" value="java.lang.String" />
-                                      <entry key="createAt" value="java.lang.Long" />
-                                      <entry key="updateAt" value="java.lang.Long" />
-                                      <entry key="city" value="java.lang.String" />
-                                      <entry key="isp" value="java.lang.String" />
-                                      <entry key="sdkVersion" value="java.lang.String" />
-                                      <entry key="swarmSize" value="java.lang.Integer" />
-                                      <entry key="score" value="java.lang.Double" />
-                                   </map>
-                                </property>
-                                <property name="indexes">
-                                   <list>
-                                      <bean class="org.apache.ignite.cache.QueryIndex">
-                                         <constructor-arg value="swarmSize" />
-                                      </bean>
-                                      <!-- Group index. -->
-                                      <bean class="org.apache.ignite.cache.QueryIndex">
-                                         <constructor-arg>
-                                            <list>
-                                               <value>sdkVersion</value>
-                                               <value>swarmId</value>
-                                            </list>
-                                         </constructor-arg>
-                                         <constructor-arg value="SORTED" />
-                                      </bean>
-                                      <!-- Group index. -->
-                                      <bean class="org.apache.ignite.cache.QueryIndex">
-                                         <constructor-arg>
-                                            <list>
-                                               <value>city</value>
-                                               <value>isp</value>
-                                            </list>
-                                         </constructor-arg>
-                                         <constructor-arg value="SORTED" />
-                                      </bean>
-                                   </list>
-                                </property>
-                             </bean>
-                          </list>
-                       </property>
+                       <property name="backups" value="2" />
                     </bean>
                  </list>
               </property>
@@ -147,80 +68,7 @@ catalog:
                        <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.zk.TcpDiscoveryZookeeperIpFinder">
                           <property name="allowDuplicateRegistrations" value="false" />
                           <property name="basePath" value="/ignite" />
-                          <property name="serviceName" value="pdn" />
-                          <property name="zkConnectionString" value="zk.zookeeper.rancher.internal:2181" />
-                       </bean>
-                    </property>
-                 </bean>
-              </property>
-           </bean>
-        </beans>
-    - variable: cache_ignite_config
-      description: |
-        generate cache-config.xml
-      label: cache-config.xml
-      type: multiline
-      required: true
-      default: |
-        <?xml version="1.0" encoding="UTF-8"?>
-        <beans xmlns="http://www.springframework.org/schema/beans" xmlns:cache="http://www.springframework.org/schema/cache" xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="         http://www.springframework.org/schema/beans         http://www.springframework.org/schema/beans/spring-beans.xsd         http://www.springframework.org/schema/cache         http://www.springframework.org/schema/cache/spring-cache-3.1.xsd         http://www.springframework.org/schema/context         http://www.springframework.org/schema/context/spring-context.xsd ">
-           <bean class="org.apache.ignite.configuration.IgniteConfiguration">
-              <!-- Enabling Redis. -->
-              <property name="connectorConfiguration">
-                 <bean class="org.apache.ignite.configuration.ConnectorConfiguration">
-                    <property name="port" value="6379" />
-                 </bean>
-              </property>
-
-              <!-- Enabling Apache Ignite Persistent Store. -->
-              <property name="persistentStoreConfiguration">
-                  <bean class="org.apache.ignite.configuration.PersistentStoreConfiguration"/>
-              </property>
-              <property name="cacheConfiguration">
-                 <list>
-                    <!-- for Redis Partitioned cache example configuration (Atomic mode). -->
-                    <bean class="org.apache.ignite.configuration.CacheConfiguration">
-                       <property name="name" value="default" />
-                       <property name="atomicityMode" value="ATOMIC" />
-                       <property name="backups" value="1" />
-                    </bean>
-                    <bean class="org.apache.ignite.configuration.CacheConfiguration">
-                       <property name="name" value="cache" />
-                       <property name="cacheMode" value="PARTITIONED" />
-                       <property name="atomicityMode" value="ATOMIC" />
-                       <property name="writeSynchronizationMode" value="PRIMARY_SYNC" />
-                       <property name="backups" value="0"/>
-                       <property name="queryEntities">
-                          <list>
-                             <bean class="org.apache.ignite.cache.QueryEntity">
-                                <property name="keyType" value="java.lang.String" />
-                                <property name="valueType" value="stat_raw" />
-                                <property name="fields">
-                                   <map>
-                                      <entry key="Timestamp" value="java.lang.Long" />
-                                      <entry key="ClientId" value="java.lang.String" />
-                                      <entry key="StatId" value="java.lang.String" />
-                                      <entry key="ServiceId" value="java.lang.String" />
-                                      <entry key="VL" value="java.lang.Long" />
-                                      <entry key="CustomValue" value="java.lang.Long" />
-                                      <entry key="SdkVersion" value="java.lang.String" />
-                                      <entry key="JSONData" value="java.lang.String" />
-                                      <entry key="TimestampDT" value="java.lang.Date" />
-                                   </map>
-                                </property>
-                             </bean>
-                          </list>
-                       </property>
-                    </bean>
-                 </list>
-              </property>
-              <property name="discoverySpi">
-                 <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
-                    <property name="ipFinder">
-                       <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.zk.TcpDiscoveryZookeeperIpFinder">
-                          <property name="allowDuplicateRegistrations" value="false" />
-                          <property name="basePath" value="/ignite" />
-                          <property name="serviceName" value="cache" />
+                          <property name="serviceName" value="ignite" />
                           <property name="zkConnectionString" value="zk.zookeeper.rancher.internal:2181" />
                        </bean>
                     </property>
@@ -229,25 +77,10 @@ catalog:
            </bean>
         </beans>
 services:
-  pdn:
+  ignite:
     metadata:
       ignite: |
-        ${pdn_ignite_config}
-    retain_ip: true
-    start_on_create: true
-    health_check:
-      response_timeout: 2000
-      healthy_threshold: 2
-      port: 6379
-      unhealthy_threshold: 3
-      initializing_timeout: 60000
-      interval: 2000
-      strategy: recreate
-      reinitializing_timeout: 60000
-  cache:
-    metadata:
-      ignite: |
-        ${cache_ignite_config}
+        ${ignite_config}
     retain_ip: true
     start_on_create: true
     health_check:
