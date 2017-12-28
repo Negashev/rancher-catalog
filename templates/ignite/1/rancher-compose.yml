@@ -48,10 +48,6 @@ catalog:
                  </bean>
               </property>
 
-              <!-- Enabling Apache Ignite Persistent Store. -->
-              <property name="persistentStoreConfiguration">
-                  <bean class="org.apache.ignite.configuration.PersistentStoreConfiguration"/>
-              </property>
               <property name="cacheConfiguration">
                  <list>
                     <!-- for Redis Partitioned cache example configuration (Atomic mode). -->
