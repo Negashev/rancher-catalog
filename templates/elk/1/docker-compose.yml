@@ -194,6 +194,8 @@ services:
     stdin_open: true
     tty: true
     environment:
+      ELASTICSEARCH_URL: http://es:9200
+      xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
       xpack.security.enabled: 'false'
       xpack.monitoring.enabled: 'false'
     logging:
@@ -202,7 +204,7 @@ services:
         max-file: '1'
         max-size: 1mb
     links:
-    - es:elasticsearch
+    - es:es
     labels:
       io.rancher.container.pull_image: always
   logstash-indexer:
