@@ -12,7 +12,7 @@ catalog:
         Datanodes ES_JAVA_OPTS
       label: ES_JAVA_OPTS
       type: string
-      default: "-Xms512m -Xmx512m"
+      default: "-Xms1g -Xmx1g"
       required: true
     - variable: ES_STORAGE
       description: |
