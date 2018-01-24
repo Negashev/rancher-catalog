@@ -36,7 +36,7 @@ services:
   logstash-collector:
     image: docker.elastic.co/logstash/logstash:6.1.2
     environment:
-      xpack.monitoring.enabled: false
+      xpack.security.enabled: false
     stdin_open: true
     tty: true
     logging:
@@ -57,7 +57,7 @@ services:
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
     environment:
-      xpack.monitoring.enabled: false
+      xpack.security.enabled: false
       ES_JAVA_OPTS: ${ES_JAVA_OPTS}
       node.name: $${HOSTNAME}
       discovery.zen.ping.unicast.hosts: es
@@ -197,7 +197,6 @@ services:
       ELASTICSEARCH_URL: http://es:9200
       xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
       xpack.security.enabled: 'false'
-      xpack.monitoring.enabled: 'false'
     logging:
       driver: json-file
       options:
@@ -210,7 +209,7 @@ services:
   logstash-indexer:
     image: docker.elastic.co/logstash/logstash:6.1.2
     environment:
-      xpack.monitoring.enabled: false
+      xpack.security.enabled: false
     stdin_open: true
     tty: true
     logging:
