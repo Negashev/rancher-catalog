@@ -21,13 +21,6 @@ catalog:
       type: string
       default: "/usr/share/elasticsearch/data"
       required: true
-    - variable: mem_limit
-      description: |
-          Memory limit in Byte per elasticsearch container. AT LEAST double the heap size! (data nodes)
-      label: Memory limit in byte (data nodes)
-      type: int
-      default: 1073741824
-      required: true
     - variable: collector_conf
       description: |
         generate collect logstash.conf
