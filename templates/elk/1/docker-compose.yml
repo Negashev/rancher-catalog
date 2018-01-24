@@ -1,0 +1,343 @@
+version: '2'
+services:
+  es-storage:
+    image: busybox
+    network_mode: none
+    volumes:
+    - $ES_STORAGE
+    labels:
+      io.rancher.container.start_once: 'true'
+    command:
+    - chmod
+    - '777'
+    - -R
+    - /usr/share/elasticsearch/data
+  logstash-collector-conf:
+    image: alpine:latest
+    working_dir: /config
+    volumes:
+    - /config
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - redis:redis
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/collector
+    - -O
+    - logstash.conf
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      io.rancher.container.pull_image: always
+  metricbeat-other-conf:
+    image: alpine:latest
+    environment:
+      METADATA_URL: http://rancher-metadata.rancher.internal/latest/self/service/metadata
+    volumes:
+    - /config
+    - /config/conf.d
+    - /etc/confd/conf.d
+    - /etc/confd/templates
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    command:
+    - sh
+    - -c
+    - wget $$METADATA_URL/metricbeat-other -O /config/metricbeat.yml; wget $$METADATA_URL/mo_confd_toml -O /etc/confd/conf.d/metricbeat.toml; wget $$METADATA_URL/mo_confd_tmpl -O /etc/confd/templates/other.yml.tmpl
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
+  metricbeat:
+    image: picoded/docker-metricbeat
+    stdin_open: true
+    entrypoint:
+    - metricbeat
+    - -e
+    - -c
+    - /config/metricbeat.yml
+    - -system.hostfs=/hostfs
+    network_mode: host
+    volumes:
+    - /proc:/hostfs/proc:ro
+    - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+    - /etc/hostname:/hostfs/etc/hostname:ro
+    - /var/run/docker.sock:/hostfs/var/run/docker.sock:rw
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    volumes_from:
+    - metricbeat-conf
+    labels:
+      io.rancher.container.dns: 'true'
+      io.rancher.sidekicks: metricbeat-conf
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+  metricbeat-other-confd:
+    image: rancher/confd-base
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    volumes_from:
+    - metricbeat-other-conf
+    command:
+    - --backend
+    - rancher
+    - --prefix
+    - /2016-07-29
+    - --log-level
+    - debug
+    labels:
+      io.rancher.container.pull_image: always
+  logstash-collector:
+    image: docker.elastic.co/logstash/logstash:6.1.2
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - redis:redis
+    volumes_from:
+    - logstash-collector-conf
+    command:
+    - -f
+    - /config/logstash.conf
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: logstash-collector-conf
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
+    environment:
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      node.name: $${HOSTNAME}
+      discovery.zen.ping.unicast.hosts: es
+    stdin_open: true
+    tty: true
+    volumes_from:
+    - es-storage
+    labels:
+      io.rancher.sidekicks: es-storage
+      io.rancher.container.hostname_override: container_name
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.affinity:host_label_ne: elk=false
+      io.rancher.scheduler.global: 'true'
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+  redis:
+    image: redis:alpine
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    labels:
+      io.rancher.container.pull_image: always
+  logstash-indexer-conf:
+    image: alpine:latest
+    working_dir: /config
+    volumes:
+    - /config
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - redis:redis
+    - es:es
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/indexer
+    - -O
+    - logstash.conf
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      io.rancher.container.pull_image: always
+  sysctl:
+    privileged: true
+    image: alpine
+    stdin_open: true
+    network_mode: none
+    tty: true
+    command:
+    - sysctl
+    - -w
+    - vm.max_map_count=262144
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+      cron.schedule: 0 */5 * * * *
+      cron.action: start
+  cerebro:
+    image: yannart/cerebro
+    stdin_open: true
+    tty: true
+    links:
+    - es:es
+    labels:
+      io.rancher.container.pull_image: always
+  curator:
+    image: python:alpine
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    volumes_from:
+    - curator-conf
+    command:
+    - sh
+    - /config/curator.sh
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.sidekicks: curator-conf
+      io.rancher.container.pull_image: always
+      cron.schedule: 0 0 * * * *
+      cron.action: restart
+  logspout:
+    image: bekt/logspout-logstash
+    environment:
+      LOGSPOUT: ignore
+      ROUTE_URIS: logstash://logstash-collector:5000
+    stdin_open: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    links:
+    - logstash-collector:logstash-collector
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+  curator-conf:
+    image: alpine:latest
+    working_dir: /config
+    volumes:
+    - /config
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/curator
+    - -O
+    - curator.sh
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
+  metricbeat-conf:
+    image: alpine:latest
+    working_dir: /config
+    volumes:
+    - /config
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/metricbeat
+    - -O
+    - metricbeat.yml
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+  metricbeat-other:
+    image: docker.elastic.co/beats/metricbeat:6.1.2
+    network_mode: host
+    stdin_open: true
+    entrypoint:
+    - metricbeat
+    - -e
+    - -c
+    - /config/metricbeat.yml
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:es
+    volumes_from:
+    - metricbeat-other-conf
+    labels:
+      io.rancher.container.dns: 'true'
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: metricbeat-other-conf,metricbeat-other-confd
+  kibana:
+    image: kibana
+    stdin_open: true
+    tty: true
+    environment:
+      xpack.security.enabled: 'false'
+      xpack.monitoring.enabled: 'false'
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - es:elasticsearch
+    labels:
+      io.rancher.container.pull_image: always
+  logstash-indexer:
+    image: docker.elastic.co/logstash/logstash:6.1.2
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - redis:redis
+    - es:es
+    volumes_from:
+    - logstash-indexer-conf
+    command:
+    - -f
+    - /config/logstash.conf
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: logstash-indexer-conf
