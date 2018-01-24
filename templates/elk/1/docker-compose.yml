@@ -33,83 +33,10 @@ services:
       io.rancher.container.start_once: 'true'
       io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
       io.rancher.container.pull_image: always
-  metricbeat-other-conf:
-    image: alpine:latest
-    environment:
-      METADATA_URL: http://rancher-metadata.rancher.internal/latest/self/service/metadata
-    volumes:
-    - /config
-    - /config/conf.d
-    - /etc/confd/conf.d
-    - /etc/confd/templates
-    logging:
-      driver: json-file
-      options:
-        max-file: '1'
-        max-size: 1mb
-    links:
-    - es:es
-    command:
-    - sh
-    - -c
-    - wget $$METADATA_URL/metricbeat-other -O /config/metricbeat.yml; wget $$METADATA_URL/mo_confd_toml -O /etc/confd/conf.d/metricbeat.toml; wget $$METADATA_URL/mo_confd_tmpl -O /etc/confd/templates/other.yml.tmpl
-    labels:
-      io.rancher.container.pull_image: always
-      io.rancher.container.start_once: 'true'
-  metricbeat:
-    image: picoded/docker-metricbeat
-    stdin_open: true
-    entrypoint:
-    - metricbeat
-    - -e
-    - -c
-    - /config/metricbeat.yml
-    - -system.hostfs=/hostfs
-    network_mode: host
-    volumes:
-    - /proc:/hostfs/proc:ro
-    - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
-    - /etc/hostname:/hostfs/etc/hostname:ro
-    - /var/run/docker.sock:/hostfs/var/run/docker.sock:rw
-    tty: true
-    logging:
-      driver: json-file
-      options:
-        max-file: '1'
-        max-size: 1mb
-    links:
-    - es:es
-    volumes_from:
-    - metricbeat-conf
-    labels:
-      io.rancher.container.dns: 'true'
-      io.rancher.sidekicks: metricbeat-conf
-      io.rancher.container.pull_image: always
-      io.rancher.scheduler.global: 'true'
-  metricbeat-other-confd:
-    image: rancher/confd-base
-    stdin_open: true
-    tty: true
-    logging:
-      driver: json-file
-      options:
-        max-file: '1'
-        max-size: 1mb
-    links:
-    - es:es
-    volumes_from:
-    - metricbeat-other-conf
-    command:
-    - --backend
-    - rancher
-    - --prefix
-    - /2016-07-29
-    - --log-level
-    - debug
-    labels:
-      io.rancher.container.pull_image: always
   logstash-collector:
     image: docker.elastic.co/logstash/logstash:6.1.2
+    environment:
+      xpack.monitoring.enabled: false
     stdin_open: true
     tty: true
     logging:
@@ -130,7 +57,8 @@ services:
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.1.2
     environment:
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      xpack.monitoring.enabled: false
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
       node.name: $${HOSTNAME}
       discovery.zen.ping.unicast.hosts: es
     stdin_open: true
@@ -261,50 +189,6 @@ services:
     labels:
       io.rancher.container.pull_image: always
       io.rancher.container.start_once: 'true'
-  metricbeat-conf:
-    image: alpine:latest
-    working_dir: /config
-    volumes:
-    - /config
-    logging:
-      driver: json-file
-      options:
-        max-file: '1'
-        max-size: 1mb
-    links:
-    - es:es
-    command:
-    - wget
-    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/metricbeat
-    - -O
-    - metricbeat.yml
-    labels:
-      io.rancher.container.start_once: 'true'
-      io.rancher.container.pull_image: always
-      io.rancher.scheduler.global: 'true'
-  metricbeat-other:
-    image: docker.elastic.co/beats/metricbeat:6.1.2
-    network_mode: host
-    stdin_open: true
-    entrypoint:
-    - metricbeat
-    - -e
-    - -c
-    - /config/metricbeat.yml
-    tty: true
-    logging:
-      driver: json-file
-      options:
-        max-file: '1'
-        max-size: 1mb
-    links:
-    - es:es
-    volumes_from:
-    - metricbeat-other-conf
-    labels:
-      io.rancher.container.dns: 'true'
-      io.rancher.container.pull_image: always
-      io.rancher.sidekicks: metricbeat-other-conf,metricbeat-other-confd
   kibana:
     image: kibana
     stdin_open: true
@@ -323,6 +207,8 @@ services:
       io.rancher.container.pull_image: always
   logstash-indexer:
     image: docker.elastic.co/logstash/logstash:6.1.2
+    environment:
+      xpack.monitoring.enabled: false
     stdin_open: true
     tty: true
     logging:
