@@ -1,0 +1,36 @@
+version: '2'
+catalog:
+  name: "metricbeat"
+  version: "6.1.3"
+  description: "Lightweight Shipper for Metrics"
+  uuid: metricbeat-1
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: METRICBEAT_VERSION
+      description: |
+          Metricbeat version
+      label: Metricbeat version
+      type: string
+      default: "6.1.3"
+      required: true
+    - variable: "elasticsearch_link"
+      description: |
+        stack/service link or external service link to elasticsearch
+        cluster.
+      label: "Elasticsearch stack/service"
+      default: "elk/es"
+      required: true
+      type: "service"
+    - variable: metricbeat_yml
+      description: |
+        generate metricbeat.yml
+      label: metricbeat.yml
+      type: multiline
+      required: true
+      default: |
+        metricbeat.modules:
+services:
+  server:
+    metadata:
+      metricbeat: |
+        ${metricbeat_yml}
