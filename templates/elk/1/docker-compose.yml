@@ -37,6 +37,7 @@ services:
     image: docker.elastic.co/logstash/logstash:6.1.2
     environment:
       xpack.security.enabled: false
+      xpack.monitoring.elasticsearch.url: http://es:9200
     stdin_open: true
     tty: true
     logging:
@@ -210,6 +211,7 @@ services:
     image: docker.elastic.co/logstash/logstash:6.1.2
     environment:
       xpack.security.enabled: false
+      xpack.monitoring.elasticsearch.url: http://es:9200
     stdin_open: true
     tty: true
     logging:
