@@ -32,9 +32,23 @@ catalog:
 
         output.elasticsearch:
           # Array of hosts to connect to.
-          hosts: ["elasticsearch:9200"]
+          hosts: ["elasticsearch:9200Z"]
+    - variable: fields_yml
+      description: |
+        generate fields.yml
+      label: fields.yml
+      type: multiline
+      required: true
+      default: |
+        - name: fields
+        type: group
+        fields:
+        - name: '@timestamp'
+          type: date
 services:
   metricbeat:
     metadata:
       metricbeat: |
         ${metricbeat_yml}
+      fields: |
+        ${fields_yml}
