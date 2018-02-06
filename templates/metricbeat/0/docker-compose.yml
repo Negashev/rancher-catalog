@@ -1,27 +1,26 @@
 version: '2'
 services:
-  server:
-    metricbeat-conf:
-      image: alpine:latest
-      working_dir: /usr/share/metricbeat/modules.d
-      volumes:
-      - /usr/share/metricbeat/modules.d
-      logging:
-        driver: json-file
-        options:
-          max-file: '1'
-          max-size: 1mb
-      command:
-      - wget
-      - http://rancher-metadata.rancher.internal/latest/self/service/metadata/metricbeat
-      - -O
-      - metricbeat.yml
-      labels:
-        io.rancher.container.start_once: 'true'
-        io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
-        io.rancher.container.pull_image: always
+  metricbeat-conf:
+    image: alpine:latest
+    working_dir: /usr/share/metricbeat/modules.d
+    volumes:
+    - /usr/share/metricbeat/modules.d
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/metricbeat
+    - -O
+    - metricbeat.yml
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      io.rancher.container.pull_image: always
   metricbeat:
-    image: docker.elastic.co/logstash/logstash:${METRICBEAT_VERSION}
+    image: docker.elastic.co/beats/metricbeat:${METRICBEAT_VERSION}
     stdin_open: true
     tty: true
     logging:
