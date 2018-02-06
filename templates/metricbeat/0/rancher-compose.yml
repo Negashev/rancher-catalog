@@ -30,7 +30,7 @@ catalog:
       default: |
         metricbeat.modules:
 services:
-  server:
+  metricbeat:
     metadata:
       metricbeat: |
         ${metricbeat_yml}
