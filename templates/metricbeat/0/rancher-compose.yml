@@ -29,6 +29,10 @@ catalog:
       required: true
       default: |
         metricbeat.modules:
+
+        output.elasticsearch:
+          # Array of hosts to connect to.
+          hosts: ["elasticsearch:9200"]
 services:
   metricbeat:
     metadata:
