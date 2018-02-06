@@ -2,9 +2,9 @@ version: '2'
 services:
   metricbeat-conf:
     image: alpine:latest
-    working_dir: /usr/share/metricbeat/modules.d
+    working_dir: /usr/share/metricbeat
     volumes:
-    - /usr/share/metricbeat/modules.d
+    - /usr/share/metricbeat/metricbeat.yml
     logging:
       driver: json-file
       options:
