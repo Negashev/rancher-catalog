@@ -32,7 +32,7 @@ catalog:
 
         output.elasticsearch:
           # Array of hosts to connect to.
-          hosts: ["elasticsearch:9200Z"]
+          hosts: ["elasticsearch:9200"]
     - variable: fields_yml
       description: |
         generate fields.yml
