@@ -3,11 +3,8 @@ services:
   es-storage:
     image: busybox
     network_mode: none
-    # volumes:
-    # - $ES_STORAGE
-    # TODO remove volume
     volumes:
-      - /usr/share/elasticsearch/data
+    - $ES_STORAGE
     labels:
       io.rancher.container.start_once: 'true'
     command:
