@@ -28,7 +28,6 @@ services:
       - 'input { udp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["elasticsearch:9200"] } }'
     labels:
       io.rancher.container.pull_image: always
-      io.rancher.sidekicks: redis
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.2.0
     environment:
