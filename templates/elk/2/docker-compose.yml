@@ -41,6 +41,8 @@ services:
     tty: true
     volumes_from:
     - es-storage
+    links:
+    - sysctl:sysctl
     labels:
       io.rancher.sidekicks: es-storage
       io.rancher.container.hostname_override: container_name
