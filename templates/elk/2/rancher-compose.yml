@@ -33,6 +33,10 @@ catalog:
             port => 5000
             codec => "json"
           }
+          http {
+            port => 8000
+            type => "elb-healthcheck"
+          }
         }
         output {
           elasticsearch {
@@ -104,7 +108,7 @@ services:
     health_check:
       healthy_threshold: 2
       response_timeout: 2000
-      port: 5000
+      port: 8000
       unhealthy_threshold: 3
       initializing_timeout: 300000
       interval: 2000
