@@ -129,10 +129,10 @@ services:
       healthy_threshold: 2
       port: 9200
       unhealthy_threshold: 3
-      initializing_timeout: 60000
+      initializing_timeout: 600000
       interval: 2000
       strategy: recreate
-      reinitializing_timeout: 60000
+      reinitializing_timeout: 600000
   curator:
     scale: 1
     metadata:
