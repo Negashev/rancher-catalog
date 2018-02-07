@@ -25,7 +25,7 @@ services:
         max-size: 1mb
     command:
       - -e
-      - 'input { udp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["elasticsearch:9200"] } }'
+      - '${logstash_conf}'
     labels:
       io.rancher.container.pull_image: always
     links:

@@ -100,9 +100,6 @@ services:
     start_on_create: true
   logstash:
     scale: 2
-    metadata:
-      indexer: |
-        ${logstash_conf}
     start_on_create: true
     health_check:
       healthy_threshold: 2
