@@ -1,0 +1,147 @@
+# notemplating
+version: '2'
+catalog:
+  name: "ELK"
+  version: "6.2.0"
+  description: "ELK Monitoring Solution"
+  uuid: elk-6-2-0
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: ES_JAVA_OPTS
+      description: |
+        Datanodes ES_JAVA_OPTS
+      label: ES_JAVA_OPTS
+      type: string
+      default: "-Xms1g -Xmx1g"
+      required: true
+    - variable: ES_STORAGE
+      description: |
+        volume options
+      label: Storage dir
+      type: string
+      default: "/usr/share/elasticsearch/data"
+      required: true
+    - variable: logstash_conf
+      description: |
+        generate logstash.conf
+      label: logstash.conf
+      type: multiline
+      required: true
+      default: |
+        input {
+          udp {
+            port => 5000
+            codec => "json"
+          }
+        }
+        output {
+          elasticsearch {
+            hosts => ["elasticsearch:9200"]
+          }
+        }
+    - variable: curator_config
+      description: |
+        generate curator config.yml
+      label: curator config.yml
+      type: multiline
+      required: true
+      default: |
+        client:
+          hosts:
+            - elasticsearch
+    - variable: curator_delete
+      description: |
+        generate curator delete.yml
+      label: curator delete.yml
+      type: multiline
+      required: true
+      default: |
+        actions:
+          1:
+            action: delete_indices
+            filters:
+            - filtertype: age
+              source: creation_date
+              direction: older
+              unit: days
+              unit_count: 10
+              timestring: '%Y.%m.%d'
+            - filtertype: pattern
+              kind: regex
+              value: 'logstash-*'
+    - variable: curator_shell
+      description: |
+        generate curator curator.sh
+      label: curator curator.sh
+      type: multiline
+      required: true
+      default: |
+        #!/bin/sh
+        pip install elasticsearch-curator
+        wget http://rancher-metadata.rancher.internal/latest/self/service/metadata/curator_config -O /curator_config.yml
+        wget http://rancher-metadata.rancher.internal/latest/self/service/metadata/curator_delete -O /curator_delete.yml
+        curator --config /curator_config.yml /curator_delete.yml
+services:
+  sysctl:
+    start_on_create: true
+  cerebro:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 9000
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  logspout:
+    start_on_create: true
+  logstash:
+    scale: 2
+    metadata:
+      indexer: |
+        ${logstash_conf}
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5000
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 300000
+  kibana:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5601
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 300000
+  elasticsearch:
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 9200
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  curator:
+    scale: 1
+    metadata:
+      curator: |
+        ${curator_shell}
+      curator_config: |
+        ${curator_config}
+      curator_delete: |
+        ${curator_delete}

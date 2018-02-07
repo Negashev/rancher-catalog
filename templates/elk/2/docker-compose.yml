@@ -1,0 +1,156 @@
+version: '2'
+services:
+  es-storage:
+    image: busybox
+    network_mode: none
+    # volumes:
+    # - $ES_STORAGE
+    # TODO remove volume
+    volumes:
+      - /usr/share/elasticsearch/data
+    labels:
+      io.rancher.container.start_once: 'true'
+    command:
+    - chmod
+    - '777'
+    - -R
+    - /usr/share/elasticsearch/data
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.2.0
+    environment:
+      xpack.security.enabled: 'false'
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    command:
+      - -e
+      - 'input { udp { port => 5000 codec => "json" } } output { elasticsearch { hosts => ["elasticsearch:9200"] } }'
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.sidekicks: redis
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.0
+    environment:
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS}
+      node.name: $${HOSTNAME}
+      discovery.zen.ping.unicast.hosts: es
+    stdin_open: true
+    tty: true
+    volumes_from:
+    - es-storage
+    labels:
+      io.rancher.sidekicks: es-storage
+      io.rancher.container.hostname_override: container_name
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.affinity:host_label_ne: elk=false
+      io.rancher.scheduler.global: 'true'
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+  sysctl:
+    privileged: true
+    image: alpine
+    stdin_open: true
+    network_mode: none
+    tty: true
+    command:
+    - sysctl
+    - -w
+    - vm.max_map_count=262144
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+      cron.schedule: 0 */5 * * * *
+      cron.action: start
+  cerebro:
+    image: yannart/cerebro
+    stdin_open: true
+    tty: true
+    links:
+    - elasticsearch:elasticsearch
+    labels:
+      io.rancher.container.pull_image: always
+    ports:
+      - 9000:9000
+  curator:
+    image: python:alpine
+    stdin_open: true
+    tty: true
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - elasticsearch:elasticsearch
+    volumes_from:
+    - curator-conf
+    command:
+    - sh
+    - /config/curator.sh
+    labels:
+      io.rancher.container.start_once: 'true'
+      io.rancher.sidekicks: curator-conf
+      io.rancher.container.pull_image: always
+      cron.schedule: 0 0 * * * *
+      cron.action: restart
+  logspout:
+    image: bekt/logspout-logstash
+    environment:
+      LOGSPOUT: ignore
+      ROUTE_URIS: logstash://logstash:5000
+    stdin_open: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    tty: true
+    links:
+    - logstash:logstash
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.scheduler.global: 'true'
+  curator-conf:
+    image: alpine:latest
+    working_dir: /config
+    volumes:
+    - /config
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - elasticsearch:elasticsearch
+    command:
+    - wget
+    - http://rancher-metadata.rancher.internal/latest/self/service/metadata/curator
+    - -O
+    - curator.sh
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.start_once: 'true'
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.2.0
+    stdin_open: true
+    tty: true
+    environment:
+      xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
+      xpack.security.enabled: 'false'
+    ports:
+      - 5601:5601
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - elasticsearch:elasticsearch
+    labels:
+      io.rancher.container.pull_image: always
