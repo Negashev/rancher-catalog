@@ -105,6 +105,7 @@ services:
     environment:
       LOGSPOUT: ignore
       ROUTE_URIS: logstash://logstash:5000
+      INACTIVITY_TIMEOUT: 30s
     stdin_open: true
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
