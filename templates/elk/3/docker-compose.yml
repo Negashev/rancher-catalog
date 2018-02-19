@@ -104,7 +104,7 @@ services:
     image: bekt/logspout-logstash
     environment:
       LOGSPOUT: ignore
-      ROUTE_URIS: logstash://logstash:5000
+      ROUTE_URIS: logstash+tcp://logstash:5000
       INACTIVITY_TIMEOUT: 30s
     stdin_open: true
     volumes:

@@ -29,7 +29,7 @@ catalog:
       required: true
       default: |
         input {
-          udp {
+          tcp {
             port => 5000
             codec => "json"
           }
