@@ -31,7 +31,7 @@ services:
         max-file: '1'
         max-size: 1mb
     command:
-    - -system.hostfs=/hostfs
+    - --system.hostfs=/hostfs
     volumes:
     - /proc:/hostfs/proc:ro
     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
