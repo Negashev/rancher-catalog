@@ -21,7 +21,7 @@ services:
       io.rancher.scheduler.global: 'true'
   metricbeat:
     image: docker.elastic.co/beats/metricbeat:${METRICBEAT_VERSION}
-    net: host
+    network_mode: host
     working_dir: /config
     stdin_open: true
     tty: true
