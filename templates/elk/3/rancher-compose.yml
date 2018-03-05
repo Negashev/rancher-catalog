@@ -73,6 +73,8 @@ catalog:
             - filtertype: pattern
               kind: regex
               value: 'logstash-*'
+            options:
+              ignore_empty_list: True
     - variable: curator_shell
       description: |
         generate curator curator.sh
