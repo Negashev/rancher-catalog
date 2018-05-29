@@ -1,0 +1,89 @@
+version: '2'
+services:
+  nats:
+    image: nats
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    links:
+    - nats-1:nats-1
+    - nats-3:nats-3
+    - nats-2:nats-2
+    command:
+    - -p
+    - '4222'
+    - --http_port
+    - '8080'
+    - -cluster
+    - nats://0.0.0.0:5222
+    - -routes
+    - nats://nats-1:5222,nats://nats-2:5222,nats://nats-3:5222
+    - -D
+    labels:
+      io.rancher.scheduler.affinity:container_label_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+      io.rancher.container.hostname_override: container_name
+  nats-1:
+    image: nats
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    command:
+    - -p
+    - '4222'
+    - --http_port
+    - '8080'
+    - -cluster
+    - nats://0.0.0.0:5222
+    - -routes
+    - nats://nats-2:5222,nats://nats-3:5222
+    - -D
+    labels:
+      server: nats
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name},server=nats
+      io.rancher.container.hostname_override: container_name
+  nats-2:
+    image: nats
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    command:
+    - -p
+    - '4222'
+    - --http_port
+    - '8080'
+    - -cluster
+    - nats://0.0.0.0:5222
+    - -routes
+    - nats://nats-2:5222,nats://nats-3:5222
+    - -D
+    labels:
+      server: nats
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name},server=nats
+      io.rancher.container.hostname_override: container_name
+  nats-3:
+    image: nats
+    logging:
+      driver: json-file
+      options:
+        max-file: '1'
+        max-size: 1mb
+    command:
+    - -p
+    - '4222'
+    - --http_port
+    - '8080'
+    - -cluster
+    - nats://0.0.0.0:5222
+    - -routes
+    - nats://nats-2:5222,nats://nats-3:5222
+    - -D
+    labels:
+      server: nats
+      io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name},server=nats
+      io.rancher.container.hostname_override: container_name

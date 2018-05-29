@@ -1,0 +1,64 @@
+version: '2'
+catalog:
+  name: "nats"
+  version: "1.1.0"
+  description: "NATS Server is a simple, high performance open source messaging system for cloud native applications, IoT messaging, and microservices architectures."
+  uuid: nats-1-1-0
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: NATS_WORKERS
+      description: |
+          NATS workers
+      label: NATS workers
+      type: int
+      default: 7
+      required: true
+services:
+  nats:
+    scale: ${NATS_WORKERS}
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 4222
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  nats-1:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5222
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  nats-2:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5222
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  nats-3:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5222
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
