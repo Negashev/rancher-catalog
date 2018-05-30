@@ -48,6 +48,27 @@ catalog:
       type: string
       default: "/var/lib/docker/containers"
       required: true
+    - variable: curator_delete
+      description: |
+        secret kay name for delete
+      label: Curator delete secret name
+      type: string
+      default: "Curator delete"
+      required: true
+    - variable: curator_config
+      description: |
+        secret kay name for config
+      label: Curator config secret name
+      type: string
+      default: "Curator config"
+      required: true
+    - variable: filebeat_config
+      description: |
+        secret kay name for filebeat
+      label: Filebeat logs secret name
+      type: string
+      default: "Filebeat docker"
+      required: true
 services:
   sysctl:
     start_on_create: true
