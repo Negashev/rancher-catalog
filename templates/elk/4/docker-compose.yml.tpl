@@ -118,11 +118,14 @@ services:
       io.rancher.websocket.proxy.port: '5601'
       {{- end }}
   filebeat:
-    image: docker.elastic.co/beats/filebeat:6.2.4
+    image: docker.elastic.co/beats/filebeat:${ELK_VERSION}
     stdin_open: true
     network_mode: host
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+    {{- range $i, $volume := split .Values.LOGS_VOLUMES ", " }}
+    - {{$volume}}:{{$volume}}
+    {{- end }}
     tty: true
     links:
     - elasticsearch:elasticsearch
@@ -143,9 +146,9 @@ services:
       io.rancher.container.pull_image: always
       io.rancher.scheduler.global: 'true'
 secrets:
-  ${curator_config}:
+  {{ .Values.curator_config }}:
     external: 'true'
-  ${curator_delete}:
+  {{ .Values.curator_delete }}:
     external: 'true'
-  ${filebeat_config}:
+  {{ .Values.filebeat_config }}:
     external: 'true'
