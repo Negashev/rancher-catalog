@@ -1,5 +1,5 @@
 name: ELK
 description: |
   Elasticksearch 6 with collect log from all docker sockets
-version: 6.2.4
+version: 6.2.4-filebeat
 category: Storage
