@@ -1,0 +1,105 @@
+# notemplating
+version: '2'
+catalog:
+  name: "ELK"
+  version: "6.2.4"
+  description: "ELK Monitoring Solution"
+  uuid: elk-6-2-4-1
+  minimum_rancher_version: v1.1.99
+  questions:
+    - variable: UI_CEREBRO
+      label: Cerebro UI
+      description: |
+        Cerebro in rancher ui
+      required: true
+      type: boolean
+      default: true
+    - variable: UI_KIBANA
+      label: Kibana UI
+      description: |
+        Kibana in rancher ui
+      required: true
+      type: boolean
+      default: true
+    - variable: ELK_VERSION
+      description: |
+          ELK  version
+      label: ELK version
+      type: string
+      default: "6.2.4"
+      required: true
+    - variable: ES_JAVA_OPTS
+      description: |
+        Datanodes ES_JAVA_OPTS
+      label: ES_JAVA_OPTS
+      type: string
+      default: "-Xms1g -Xmx1g"
+      required: true
+    - variable: ES_STORAGE
+      description: |
+        volume options
+      label: Storage dir
+      type: string
+      default: "/usr/share/elasticsearch/data"
+      required: true
+    - variable: LOGS_VOLUMES
+      description: |
+        volumes containers logs separated by commas with space ", "
+      label: Containers logs
+      type: string
+      default: "/var/lib/docker/containers"
+      required: true
+services:
+  sysctl:
+    start_on_create: true
+  cerebro:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 9000
+      unhealthy_threshold: 3
+      initializing_timeout: 60000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 60000
+  logspout:
+    start_on_create: true
+  logstash:
+    scale: 2
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 8000
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 300000
+  kibana:
+    scale: 1
+    start_on_create: true
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 5601
+      unhealthy_threshold: 3
+      initializing_timeout: 300000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 300000
+  elasticsearch:
+    start_on_create: true
+    health_check:
+      response_timeout: 2000
+      healthy_threshold: 2
+      port: 9200
+      unhealthy_threshold: 3
+      initializing_timeout: 600000
+      interval: 2000
+      strategy: recreate
+      reinitializing_timeout: 600000
+  curator:
+    scale: 1
