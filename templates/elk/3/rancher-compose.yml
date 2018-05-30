@@ -2,7 +2,7 @@
 version: '2'
 catalog:
   name: "ELK"
-  version: "6.2.4"
+  version: "6.2.4-old"
   description: "ELK Monitoring Solution"
   uuid: elk-6-2-4
   minimum_rancher_version: v1.1.99

@@ -1,8 +1,7 @@
-# notemplating
 version: '2'
 catalog:
   name: "ELK"
-  version: "6.2.4-filebeat"
+  version: "6.2.4"
   description: "ELK Monitoring Solution"
   uuid: elk-6-2-4-1
   minimum_rancher_version: v1.1.99
