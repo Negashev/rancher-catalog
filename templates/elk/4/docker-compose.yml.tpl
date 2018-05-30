@@ -17,7 +17,6 @@ services:
     environment:
       xpack.security.enabled: 'false'
       ES_JAVA_OPTS: ${ES_JAVA_OPTS}
-      node.name: $${HOSTNAME}
       discovery.zen.ping.unicast.hosts: elasticsearch
     stdin_open: true
     tty: true
