@@ -118,7 +118,7 @@ services:
       io.rancher.websocket.proxy.port: '5601'
       {{- end }}
   filebeat:
-    image: docker.elastic.co/beats/filebeat:${ELK_VERSION}
+    image: docker.elastic.co/kibana/kibana:${ELK_VERSION}
     stdin_open: true
     network_mode: host
     volumes:
