@@ -47,7 +47,7 @@ catalog:
       type: string
       default: "/usr/share/elasticsearch/data"
       required: true
-    - variable: LOGS_VOLUMES
+    - variable: LOGS_VOLUME
       description: |
         volumes containers logs separated by commas with space ", "
       label: Containers logs

@@ -30,7 +30,6 @@ Example secret filebeat_config:
   - type: log
     paths:
      - '/var/lib/docker/containers/*/*.log'
-     - '/var/lib/rancheros/containers/*/*.log'
     json.message_key: log
     json.keys_under_root: true
     processors:
