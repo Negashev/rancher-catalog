@@ -82,7 +82,6 @@ services:
     - /run/secrets/curator_delete.yml
     labels:
       io.rancher.container.start_once: 'true'
-      io.rancher.sidekicks: curator-conf
       io.rancher.container.pull_image: always
       cron.schedule: 0 0 * * * *
       cron.action: restart
@@ -123,6 +122,9 @@ services:
     network_mode: host
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
+#    {{- range $i, $volume := split .Values.LOGS_VOLUMES ", " }}
+#    - {{$volume}}:{{$volume}}
+#    {{- end }}
     tty: true
     links:
     - elasticsearch:elasticsearch
