@@ -103,6 +103,9 @@ services:
     environment:
       xpack.monitoring.ui.container.elasticsearch.enabled: 'false'
       xpack.security.enabled: 'false'
+      {{- if eq .Values.UI_KIBANA "true" }}
+      SERVER_BASEPATH: ${KIBANA_BASEPATH}
+      {{- end }}
     logging:
       driver: json-file
       options:
