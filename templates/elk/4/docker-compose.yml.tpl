@@ -125,7 +125,7 @@ services:
     network_mode: host
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
-    - {{$LOGS_VOLUME}}:/var/lib/docker/containers
+    - ${LOGS_VOLUME}:/var/lib/docker/containers
     tty: true
     links:
     - elasticsearch:elasticsearch
