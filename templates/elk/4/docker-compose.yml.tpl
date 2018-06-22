@@ -66,6 +66,8 @@ services:
       {{- end }}
   curator:
     image: python:2-alpine
+    entrypoint:
+    - /bin/sh
     stdin_open: true
     tty: true
     logging:
