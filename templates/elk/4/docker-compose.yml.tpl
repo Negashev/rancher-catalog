@@ -65,7 +65,7 @@ services:
       io.rancher.websocket.proxy.port: '9000'
       {{- end }}
   curator:
-    image: bobrik/curator:4.0.4
+    image: python:2-alpine
     stdin_open: true
     tty: true
     logging:
@@ -76,9 +76,8 @@ services:
     links:
     - elasticsearch:elasticsearch
     command:
-    - --config
-    - /run/secrets/curator_config.yml
-    - /run/secrets/curator_delete.yml
+    - -c
+    - pip install elasticsearch-curator && curator --config /run/secrets/curator_config.yml /run/secrets/curator_delete.yml
     labels:
       io.rancher.container.start_once: 'true'
       io.rancher.container.pull_image: always
