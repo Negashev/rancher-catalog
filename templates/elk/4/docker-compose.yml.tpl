@@ -76,7 +76,6 @@ services:
     links:
     - elasticsearch:elasticsearch
     command:
-    - curator
     - --config
     - /run/secrets/curator_config.yml
     - /run/secrets/curator_delete.yml
